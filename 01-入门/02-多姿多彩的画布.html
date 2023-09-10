@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #canvas {
+      background-color: antiquewhite;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <script type="module">
+    import { Color } from "https://unpkg.com/three/build/three.module.js";
+    const color = new Color(1, 0, 0);
+    const canvas = document.getElementById('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const gl = canvas.getContext('webgl');
+
+    !(function ani() {
+      color.offsetHSL(0.005, 0, 0);
+      gl.clearColor(color.r, color.g, color.b, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      requestAnimationFrame(ani);
+    })();
+  </script>
+</body>
+
+</html>
