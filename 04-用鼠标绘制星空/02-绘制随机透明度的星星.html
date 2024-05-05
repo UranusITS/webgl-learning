@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #canvas {
+      background: url("./images/sky.jpg");
+      background-size: cover;
+      background-position: right bottom;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <script id="vertexShader" type="x-shader/x-vertex">
+    attribute vec4 a_Position;
+    attribute float a_PointSize;
+    void main() {
+      gl_Position = a_Position;
+      gl_PointSize = a_PointSize;
+    }
+  </script>
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    precision mediump float;
+    uniform vec4 u_FragColor;
+    void main() {
+      float dist = distance(gl_PointCoord, vec2(0.5, 0.5));
+      if (dist < 0.5) {
+        gl_FragColor = u_FragColor;
+      } else {
+        discard;
+      }
+    }
+  </script>
+  <script type="module">
+    import { initShaders } from '../jsm/Utils.js';
+    const canvas = document.getElementById('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const gl = canvas.getContext('webgl');
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SCR_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    const vsSource = document.getElementById('vertexShader').textContent;
+    const fsSource = document.getElementById('fragmentShader').textContent;
+    initShaders(gl, vsSource, fsSource);
+    const a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+    const a_PointSize = gl.getAttribLocation(gl.program, 'a_PointSize');
+    const u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
+
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    const g_points = [];
+    canvas.addEventListener('click', (event) => {
+      const [clickX, clickY] = [event.pageX, event.pageY];
+      const {left, top, width, height} = canvas.getBoundingClientRect();
+      const [cssX, cssY] = [clickX - left, clickY - top];
+      const [halfWidth, halfHeight] = [width / 2, height / 2];
+      const [xBaseCenter, yBaseCenter] = [cssX - halfWidth, cssY - halfHeight];
+      const yBaseCenterTop = -yBaseCenter;
+      const [x, y] = [xBaseCenter / halfWidth, yBaseCenterTop / halfHeight];
+      g_points.push({x, y, z: Math.random() * 50});
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      g_points.forEach(({x, y, z}) => {
+        gl.vertexAttrib2f(a_Position, x, y);
+        gl.vertexAttrib1f(a_PointSize, z);
+        gl.drawArrays(gl.POINTS, 0, 1);
+      });
+    });
+</script>
+</body>
+
+</html>
